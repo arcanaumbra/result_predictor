@@ -10,14 +10,11 @@
 </head>
 <body>
 
-    <!-- Background Ambience -->
-    <div class="noise-overlay"></div>
     <div class="glow-orb orb-1"></div>
     <div class="glow-orb orb-2"></div>
 
     <div class="app-container">
         
-        <!-- HEADER -->
         <header>
             <div class="logo">NEURAL<span class="highlight">.AI</span></div>
             <div class="user-profile hidden" id="user-display">
@@ -26,37 +23,95 @@
             </div>
         </header>
 
-        <!-- SCREEN 1: AUTHENTICATION (Sign Up) -->
+        <!-- SCREEN 1: AUTHENTICATION (Multi-Step) -->
         <section id="auth-screen" class="screen active">
             <div class="glass-card">
-                <h1 class="hero-title">Identity <span class="gradient-text">Verification</span></h1>
-                <p class="hero-sub">Initialize profile to access probability algorithms.</p>
+                <!-- Step Indicators -->
+                <div class="step-indicator">
+                    <div class="step active" id="step-dot-1">1</div>
+                    <div class="line"></div>
+                    <div class="step" id="step-dot-2">2</div>
+                </div>
+
+                <h1 class="hero-title" id="auth-title">Personal <span class="gradient-text">Data</span></h1>
                 
                 <form id="signup-form">
-                    <div class="input-group">
-                        <input type="text" id="inp-name" required placeholder=" ">
-                        <label>Full Name</label>
-                    </div>
-                    <div class="row">
+                    
+                    <!-- STEP 1: Personal Info -->
+                    <div id="form-step-1">
                         <div class="input-group">
-                            <input type="text" id="inp-dept" required placeholder=" ">
-                            <label>Department</label>
+                            <input type="text" id="inp-name" required placeholder=" ">
+                            <label>Full Name</label>
+                            <span class="validation-msg"></span>
                         </div>
+                        
                         <div class="input-group">
-                            <input type="number" id="inp-year" required placeholder=" ">
-                            <label>Year</label>
+                            <select id="inp-dept" required>
+                                <option value="" disabled selected>Select Department</option>
+                                <!-- Populated by JS -->
+                            </select>
                         </div>
-                    </div>
-                    <div class="input-group">
-                        <input type="email" id="inp-email" required placeholder=" ">
-                        <label>Email Address</label>
-                    </div>
-                    <div class="input-group">
-                        <input type="tel" id="inp-phone" required placeholder=" ">
-                        <label>Phone Number</label>
+
+                        <div class="input-group">
+                            <input type="number" id="inp-year" min="1" max="5" required placeholder=" ">
+                            <label>Year of Study</label>
+                        </div>
+
+                        <div class="input-group">
+                            <input type="email" id="inp-email" required placeholder=" ">
+                            <label>Email Address</label>
+                            <span class="validation-msg"></span>
+                        </div>
+
+                        <div class="phone-group">
+                            <select id="inp-country-code"></select>
+                            <div class="input-group" style="flex:1; margin-bottom:0;">
+                                <input type="tel" id="inp-phone" required placeholder=" ">
+                                <label>Mobile Number</label>
+                            </div>
+                        </div>
+                        <span class="validation-msg" id="phone-msg"></span>
+
+                        <button type="button" id="btn-next" class="btn-primary">Next Step &rarr;</button>
                     </div>
 
-                    <button type="submit" class="btn-primary pulse-anim">Initialize System</button>
+                    <!-- STEP 2: Security -->
+                    <div id="form-step-2" class="hidden">
+                        
+                        <div class="input-group">
+                            <input type="text" id="inp-username" required placeholder=" ">
+                            <label>Create Username</label>
+                            <div class="username-status hidden">
+                                <span class="loader-spinner"></span>
+                                <span class="status-text">Checking...</span>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <input type="password" id="inp-pass" required placeholder=" ">
+                            <label>Password</label>
+                        </div>
+
+                        <!-- Password Checklist -->
+                        <div class="password-checklist">
+                            <div class="check-item" id="chk-len"><span class="icon">○</span> 8+ Characters</div>
+                            <div class="check-item" id="chk-num"><span class="icon">○</span> Contains Number</div>
+                            <div class="check-item" id="chk-up"><span class="icon">○</span> Uppercase Letter</div>
+                            <div class="check-item" id="chk-spec"><span class="icon">○</span> Special Char (!@#$)</div>
+                        </div>
+
+                        <div class="input-group">
+                            <input type="password" id="inp-pass-confirm" required placeholder=" ">
+                            <label>Confirm Password</label>
+                            <span class="validation-msg" id="match-msg"></span>
+                        </div>
+
+                        <div class="btn-row">
+                            <button type="button" id="btn-back" class="btn-secondary">Back</button>
+                            <button type="submit" id="btn-submit" class="btn-primary pulse-anim" disabled>Create Account</button>
+                        </div>
+                    </div>
+
                 </form>
             </div>
         </section>
@@ -81,20 +136,19 @@
             <button id="btn-logout" class="btn-text">Disconnect Session</button>
         </section>
 
-        <!-- SCREEN 3: QUIZ INTERFACE -->
+        <!-- SCREEN 3: QUIZ -->
         <section id="quiz-screen" class="screen hidden">
             <div class="progress-container">
                 <div class="progress-bar" id="progress-bar"></div>
             </div>
-            
             <div class="question-card">
                 <span class="q-badge" id="q-tracker">01 / 15</span>
-                <h2 id="question-text">Loading Data...</h2>
+                <h2 id="question-text">Loading...</h2>
                 <div class="options-grid" id="options-container"></div>
             </div>
         </section>
 
-        <!-- SCREEN 4: PROCESSING -->
+        <!-- SCREEN 4: LOADING -->
         <section id="loading-screen" class="screen hidden">
             <div class="loader-content">
                 <div class="scanner"></div>
@@ -103,7 +157,7 @@
             </div>
         </section>
 
-        <!-- SCREEN 5: RESULTS -->
+        <!-- SCREEN 5: RESULT -->
         <section id="result-screen" class="screen hidden">
             <div class="result-card">
                 <div class="score-ring-container">
@@ -115,22 +169,14 @@
                         <span id="final-score">0</span><span class="percent">%</span>
                     </div>
                 </div>
-                
                 <h2 id="result-title" class="gradient-text">Calculating...</h2>
                 <p id="result-desc">Analysis complete.</p>
-                
-                <div class="user-details-box">
-                    <p>Report generated for <span id="res-name">User</span></p>
-                    <p class="mono-text" id="res-id">ID: 882-AFX</p>
-                </div>
-
                 <button class="btn-secondary" onclick="location.reload()">Run New Simulation</button>
             </div>
         </section>
 
     </div>
-
-    <script type="module" src="js/main.js"></script>
     <script src="js/remoteLoader.js"></script>
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>
