@@ -37,6 +37,8 @@ export const Auth = {
 
         // 1. POPULATE DROPDOWNS
         const deptSelect = document.getElementById('inp-dept');
+        // Clear existing to prevent duplicates if called twice
+        deptSelect.innerHTML = '<option value="" disabled selected>Select Department</option>';
         departments.forEach(d => {
             const opt = document.createElement('option');
             opt.value = d;
@@ -45,6 +47,7 @@ export const Auth = {
         });
 
         const countrySelect = document.getElementById('inp-country-code');
+        countrySelect.innerHTML = '';
         countryCodes.forEach(c => {
             const opt = document.createElement('option');
             opt.value = c.code;

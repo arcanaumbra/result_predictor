@@ -52,17 +52,34 @@ function switchScreen(screenName) {
     setTimeout(() => screens[screenName].classList.add('active'), 10);
 }
 
+// --- UI UPDATER (FIXED CRASH HERE) ---
 function updateProfileUI(user) {
+    if (!user) return;
+
     // Header
-    document.getElementById('user-display').classList.remove('hidden');
-    document.getElementById('user-name-display').innerText = user.username ? user.username.toUpperCase() : "USER";
+    const userDisplay = document.getElementById('user-display');
+    const userNameDisplay = document.getElementById('user-name-display');
+    
+    if(userDisplay) userDisplay.classList.remove('hidden');
+    if(userNameDisplay) userNameDisplay.innerText = user.username ? user.username.toUpperCase() : "USER";
     
     // Dashboard
-    document.getElementById('dash-name').innerText = user.name;
-    document.getElementById('dash-dept').innerText = user.dept.split('(')[1].replace(')', ''); // Extract short code
+    const dashName = document.getElementById('dash-name');
+    const dashDept = document.getElementById('dash-dept');
+    
+    if(dashName) dashName.innerText = user.name;
+    
+    // Safe Department Parsing
+    if(dashDept && user.dept) {
+        if(user.dept.includes('(')) {
+            dashDept.innerText = user.dept.split('(')[1].replace(')', ''); 
+        } else {
+            dashDept.innerText = user.dept; 
+        }
+    }
 }
 
-// --- QUIZ LOGIC (Same as before) ---
+// --- QUIZ LOGIC ---
 function startQuiz() {
     state.maxScore = questions.reduce((acc, q) => acc + (10 * q.weight), 0);
     state.score = 0;
