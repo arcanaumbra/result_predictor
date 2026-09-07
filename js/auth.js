@@ -107,8 +107,10 @@ export const Auth = {
             const loader = document.querySelector('.loader-spinner');
             
             if(val.length < 3) {
+                clearTimeout(userTimeout);
                 statusBox.classList.add('hidden');
                 formState.valid.username = false;
+                checkSubmit();
                 return;
             }
 
@@ -157,6 +159,7 @@ export const Auth = {
             if(passConf.value === '') {
                 passConf.classList.remove('valid', 'invalid');
                 msg.innerText = "";
+                formState.valid.match = false;
             } else if(isMatch) {
                 passConf.classList.add('valid');
                 passConf.classList.remove('invalid');
@@ -172,18 +175,39 @@ export const Auth = {
         }
 
         function checkSubmit() {
-            if(formState.valid.username && formState.valid.password && formState.valid.match) {
-                submitBtn.disabled = false;
-            } else {
-                submitBtn.disabled = true;
-            }
+            // Do not disable the submit control.  The submit handler performs
+            // the same checks and explains what still needs fixing, which also
+            // makes the form usable on mobile browsers and with autofill.
+            const ready = formState.valid.username && formState.valid.password && formState.valid.match;
+            submitBtn.setAttribute('aria-disabled', String(!ready));
         }
 
         backBtn.addEventListener('click', () => goToStep(1));
 
         document.getElementById('signup-form').addEventListener('submit', (e) => {
             e.preventDefault();
-            formState.data.username = userInp.value;
+
+            // Keep the button usable on every browser, but never create an
+            // incomplete account if the user submits before validation finishes.
+            const usernameValid = userInp.value.trim().length >= 3 && formState.valid.username;
+            const passwordValid = formState.valid.password;
+            const passwordMatches = passInp.value !== '' && passInp.value === passConf.value;
+
+            if (!usernameValid || !passwordValid || !passwordMatches) {
+                if (!usernameValid) {
+                    userInp.focus();
+                    alert('Please enter a username with at least 3 characters and wait for it to be verified.');
+                } else if (!passwordValid) {
+                    passInp.focus();
+                    alert('Please complete all password requirements.');
+                } else {
+                    passConf.focus();
+                    alert('Passwords do not match.');
+                }
+                return;
+            }
+
+            formState.data.username = userInp.value.trim();
             const user = Auth.saveUser(formState.data);
             switchScreenCb(user);
         });
